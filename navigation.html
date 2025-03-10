@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Navigation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <style>
+        #overlay-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .location-marker {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            transform: translate(-50%, -50%);
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        #compass {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        #navigation-info {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 1000;
+        }
+        #navigation-info button {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay-container"></div>
+    <div id="compass">N</div>
+
+    <div id="navigation-info">
+        <h2>AR Navigation</h2>
+        <p id="start-coords">Start Location: Loading...</p>
+        <p id="destination-coords">Destination: Loading...</p>
+        <p id="distance">Distance: Calculating...</p>
+        <p id="bearing">Bearing: Calculating...</p>
+        <button onclick="window.location.href='index.html'">Back to Home</button>
+    </div>
+
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; trackingMethod: best;" vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; antialias: true;" id="ar-scene">
+        <!-- Navigation Elements -->
+        <a-entity id="navigation-container">
+            <!-- Direction Arrow -->
+            <a-entity id="arrow-container" position="0 0 -4">
+                <a-cone id="direction-arrow" 
+                    position="0 0 0"
+                    rotation="90 0 0"
+                    radius-bottom="0.2"
+                    radius-top="0"
+                    height="0.5"
+                    material="color: #FF4444; opacity: 0.8; transparent: true;"
+                    animation="property: position; dir: alternate; dur: 1000; easing: easeInOutQuad; loop: true; to: 0 0.2 0">
+                </a-cone>
+                <!-- Arrow Trail -->
+                <a-entity id="arrow-trail"
+                    geometry="primitive: plane; width: 0.1; height: 2"
+                    material="color: #FF4444; opacity: 0.4; transparent: true;"
+                    position="0 0 -1"
+                    rotation="-90 0 0">
+                </a-entity>
+            </a-entity>
+
+            <!-- Distance Rings -->
+            <a-entity id="distance-rings">
+                <a-ring id="ring-near" 
+                    radius-inner="3.8" 
+                    radius-outer="4" 
+                    rotation="-90 0 0" 
+                    material="color: #4CAF50; opacity: 0.5; transparent: true;">
+                </a-ring>
+                <a-ring id="ring-mid" 
+                    radius-inner="7.8" 
+                    radius-outer="8" 
+                    rotation="-90 0 0" 
+                    material="color: #FFC107; opacity: 0.5; transparent: true;">
+                </a-ring>
+                <a-ring id="ring-far" 
+                    radius-inner="11.8" 
+                    radius-outer="12" 
+                    rotation="-90 0 0" 
+                    material="color: #FF5722; opacity: 0.5; transparent: true;">
+                </a-ring>
+            </a-entity>
+
+            <!-- Waypoint Markers -->
+            <a-entity id="waypoints-container"></a-entity>
+
+            <!-- Destination Marker -->
+            <a-entity id="destination-marker" visible="false">
+                <a-cylinder 
+                    height="0.3" 
+                    radius="0.5" 
+                    material="color: #4CAF50; opacity: 0.7; transparent: true;"
+                    animation="property: position; dir: alternate; dur: 2000; easing: easeInOutQuad; loop: true; to: 0 0.5 0">
+                </a-cylinder>
+                <a-text 
+                    value="DESTINATION" 
+                    align="center" 
+                    position="0 1 0" 
+                    scale="1 1 1" 
+                    rotation="0 0 0"
+                    color="#ffffff">
+                </a-text>
+            </a-entity>
+        </a-entity>
+
+        <!-- Camera with Raycaster for Interaction -->
+        <a-entity camera look-controls position="0 1.6 0">
+            <a-entity cursor="rayOrigin: mouse"
+                      raycaster="objects: .clickable"
+                      position="0 0 -1"
+                      geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                      material="color: white; shader: flat; opacity: 0.5">
+            </a-entity>
+        </a-entity>
+    </a-scene>
+
+    <script src="js/navigation.js"></script>
+
+</body>
+</html>
